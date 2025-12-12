@@ -1,0 +1,27 @@
+
+bundle:
+  name: multitouch_attribution
+
+resources:
+  jobs:
+    multitouch_pipeline:
+      name: Multitouch Attribution Pipeline
+      tasks:
+        - task_key: data_generation
+          job_cluster_key: common_cluster
+          notebook_task:
+            notebook_path: ./notebooks/01_data_generation
+        
+        - task_key: ingest
+          depends_on:
+            - task_key: data_generation
+          job_cluster_key: common_cluster
+          notebook_task:
+            notebook_path: ./notebooks/02_ingest
+
+      job_clusters:
+        - job_cluster_key: common_cluster
+          new_cluster:
+            spark_version: 13.3.x-scala2.12
+            node_type_id: i3.xlarge
+            num_workers: 1
