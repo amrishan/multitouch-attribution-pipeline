@@ -35,8 +35,19 @@ import os
 
 # COMMAND ----------
 
-# Note: Using FileStore because Public DBFS Root is often disabled
-dbutils.widgets.text("project_dir", "/dbfs/FileStore/multitouch_attribution")
+
+# Note: Using FileStore because Public DBFS Root is typically disabled on free tier.
+# Alternatively, use a Workspace path dynamically if preferred (requires code updates)
+import os
+username = os.environ.get('USER', 'your-email')
+default_path = f"/Workspace/Users/{username}/multitouch_attribution"
+
+# Check if we are likely in a workspace environment
+if os.path.exists("/Workspace/Users"):
+   dbutils.widgets.text("project_dir", default_path)
+else:
+   dbutils.widgets.text("project_dir", "/dbfs/FileStore/multitouch_attribution")
+
 dbutils.widgets.text("database_name", "multi_touch_attribution")
 
 project_dir_arg = dbutils.widgets.get("project_dir")
@@ -49,10 +60,13 @@ config = ProjectConfig(project_directory=project_dir_arg, database_name=database
 
 print(f"Generating data to {config.data_gen_path}")
 # Ensure directory exists
-# os.makedirs(os.path.dirname(config.data_gen_path), exist_ok=True) # Fails on some DBFS versions
-# Use dbutils to create the directory natively in DBFS
-print(f"Creating directory: {config.raw_data_path}")
-dbutils.fs.mkdirs(config.raw_data_path)
+if config.is_workspace_path:
+    # Workspace files supported via os.makedirs
+    os.makedirs(os.path.dirname(config.data_gen_path), exist_ok=True)
+else:
+    # DBFS
+    print(f"Creating directory in DBFS: {config.raw_data_path}")
+    dbutils.fs.mkdirs(config.raw_data_path)
 
 generate_synthetic_data(config.data_gen_path)
 
