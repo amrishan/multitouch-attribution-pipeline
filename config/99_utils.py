@@ -11,16 +11,23 @@ def get_params():
   project_directory = params['project_directory']
   database_name = params['database_name']
   
+
+
   if project_directory.startswith("/Volumes"):
       data_gen_path = "{}/raw/attribution_data.csv".format(project_directory)
+      # Pure Volume paths without schemes.
+      raw_data_path = "{}/raw".format(project_directory)
+      bronze_tbl_path = "{}/bronze".format(project_directory)
+      gold_user_journey_tbl_path = "{}/gold_user_journey".format(project_directory)
+      gold_attribution_tbl_path = "{}/gold_attribution".format(project_directory)
+      gold_ad_spend_tbl_path = "{}/gold_ad_spend".format(project_directory)
   else:
       data_gen_path = "/dbfs{}/raw/attribution_data.csv".format(project_directory)
-
-  raw_data_path = "dbfs:{}/raw".format(project_directory)
-  bronze_tbl_path = "dbfs:{}/bronze".format(project_directory)
-  gold_user_journey_tbl_path = "dbfs:{}/gold_user_journey".format(project_directory)
-  gold_attribution_tbl_path = "dbfs:{}/gold_attribution".format(project_directory)
-  gold_ad_spend_tbl_path = "dbfs:{}/gold_ad_spend".format(project_directory)
+      raw_data_path = "dbfs:{}/raw".format(project_directory)
+      bronze_tbl_path = "dbfs:{}/bronze".format(project_directory)
+      gold_user_journey_tbl_path = "dbfs:{}/gold_user_journey".format(project_directory)
+      gold_attribution_tbl_path = "dbfs:{}/gold_attribution".format(project_directory)
+      gold_ad_spend_tbl_path = "dbfs:{}/gold_ad_spend".format(project_directory)
 
   params = {"project_directory": project_directory,
             "database_name": database_name,
