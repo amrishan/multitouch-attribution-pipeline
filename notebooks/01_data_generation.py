@@ -48,16 +48,20 @@ try:
 except:
     username = os.environ.get('USER', 'your-email')
 
-default_workspace_path = f"/Workspace/Users/{username}/multitouch_attribution"
-# Placeholder for Unity Catalog Volume: Users must update this manually if using UC
-# Example: /Volumes/my_catalog/my_schema/my_volume/multitouch_attribution
-default_volume_path = "/Volumes/main/default/my_volume/multitouch_attribution"
 
-# Check if we are likely in a workspace environment
-if os.path.exists("/Workspace/Users"):
-   dbutils.widgets.text("project_dir", default_workspace_path)
+default_workspace_path = f"/Workspace/Users/{username}/multitouch_attribution"
+# User-specified Unity Catalog Volume path
+default_volume_path = "/Volumes/mycatalog/multi_touch_attribution/raw"
+
+# Check if we are likely in a workspace environment and prioritize Volume if it exists (or just use it as fallback)
+if os.path.exists(default_volume_path):
+    print(f"Detected Volume path: {default_volume_path}")
+    dbutils.widgets.text("project_dir", default_volume_path)
+elif os.path.exists("/Workspace/Users"):
+    dbutils.widgets.text("project_dir", default_workspace_path)
 else:
-   dbutils.widgets.text("project_dir", "/dbfs/FileStore/multitouch_attribution")
+    # Use Volume path as the generic fallback instead of FileStore, per user request
+    dbutils.widgets.text("project_dir", default_volume_path)
 
 dbutils.widgets.text("database_name", "multi_touch_attribution")
 
