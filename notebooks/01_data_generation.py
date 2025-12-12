@@ -1,6 +1,24 @@
 
+
 # Databricks notebook source
 # MAGIC %pip install -e ../
+
+# COMMAND ----------
+
+import sys
+import os
+
+# Robustly find the repo root directory
+# In Databricks Repos, we can often rely on ".." relative to the notebook path in notebooks/
+# but sys.path needs absolute path.
+current_notebook_dir = os.getcwd()
+repo_root = os.path.dirname(current_notebook_dir)
+src_path = os.path.join(repo_root, "src")
+
+# Explicitly append to system path to ensure the module is found
+if src_path not in sys.path:
+    sys.path.append(src_path)
+    print(f"Added {src_path} to sys.path")
 
 # COMMAND ----------
 
