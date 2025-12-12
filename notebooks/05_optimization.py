@@ -50,6 +50,8 @@ spark.sql(f"USE {config.database_name}")
 # COMMAND ----------
 
 # Create table
+
+# Create table
 spark.sql(f'''
   CREATE OR REPLACE TABLE gold_ad_spend (
     campaign_id STRING, 
@@ -57,7 +59,6 @@ spark.sql(f'''
     channel_spend MAP<STRING, FLOAT>, 
     campaign_start_date TIMESTAMP)
   USING DELTA
-  LOCATION '{config.gold_ad_spend_tbl_path}'
   ''')
 
 # COMMAND ----------
