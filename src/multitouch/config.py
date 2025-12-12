@@ -34,11 +34,12 @@ class ProjectConfig:
             return f"{self.project_directory}/raw/attribution_data.csv"
         return f"/dbfs{self.project_directory}/raw/attribution_data.csv"
 
+
     @property
     def raw_data_path(self) -> str:
-        # If Volume path, return as FILE path for Spark
+        # If Volume path, return with dbfs: prefix for Spark
         if self.is_volume_path:
-             return f"file:{self.project_directory}/raw"
+             return f"dbfs:{self.project_directory}/raw"
 
         # If Workspace path, return as FILE path for Spark
         if self.is_workspace_path:
@@ -55,7 +56,7 @@ class ProjectConfig:
     @property
     def bronze_tbl_path(self) -> str:
         if self.is_volume_path:
-            return f"file:{self.project_directory}/bronze"
+            return f"dbfs:{self.project_directory}/bronze"
             
         if self.is_workspace_path:
              return f"{self.project_directory}/bronze"
