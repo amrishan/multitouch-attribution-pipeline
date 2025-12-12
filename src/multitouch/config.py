@@ -1,18 +1,28 @@
 
 
 
+
 class ProjectConfig:
     def __init__(self, project_directory: str, database_name: str):
         # Strip trailing slash
         self.project_directory = project_directory.rstrip("/")
         self.database_name = database_name
 
+
     @property
     def is_workspace_path(self) -> bool:
         return self.project_directory.startswith("/Workspace") or self.project_directory.startswith("/workspace")
 
     @property
+    def is_volume_path(self) -> bool:
+        return self.project_directory.startswith("/Volumes")
+
+    @property
     def data_gen_path(self) -> str:
+        # If Volume path, return as is
+        if self.is_volume_path:
+            return f"{self.project_directory}/raw/attribution_data.csv"
+
         # If Workspace path, return as is (Python os APIs work directly)
         if self.is_workspace_path:
             return f"{self.project_directory}/raw/attribution_data.csv"
@@ -23,10 +33,12 @@ class ProjectConfig:
             return f"{self.project_directory}/raw/attribution_data.csv"
         return f"/dbfs{self.project_directory}/raw/attribution_data.csv"
 
-
-
     @property
     def raw_data_path(self) -> str:
+        # If Volume path, return as is (Spark supports /Volumes)
+        if self.is_volume_path:
+             return f"{self.project_directory}/raw"
+
         # If Workspace path, return as FILE path for Spark
         if self.is_workspace_path:
             return f"file:{self.project_directory}/raw/attribution_data.csv"
@@ -41,6 +53,9 @@ class ProjectConfig:
 
     @property
     def bronze_tbl_path(self) -> str:
+        if self.is_volume_path:
+            return f"{self.project_directory}/bronze"
+            
         if self.is_workspace_path:
              return f"{self.project_directory}/bronze"
 
@@ -49,6 +64,9 @@ class ProjectConfig:
     
     @property
     def gold_user_journey_tbl_path(self) -> str:
+        if self.is_volume_path:
+            return f"{self.project_directory}/gold_user_journey"
+
         if self.is_workspace_path:
              return f"{self.project_directory}/gold_user_journey"
 
@@ -57,6 +75,9 @@ class ProjectConfig:
 
     @property
     def gold_attribution_tbl_path(self) -> str:
+        if self.is_volume_path:
+            return f"{self.project_directory}/gold_attribution"
+
         if self.is_workspace_path:
              return f"{self.project_directory}/gold_attribution"
 
@@ -65,6 +86,9 @@ class ProjectConfig:
 
     @property
     def gold_ad_spend_tbl_path(self) -> str:
+        if self.is_volume_path:
+            return f"{self.project_directory}/gold_ad_spend"
+
         if self.is_workspace_path:
              return f"{self.project_directory}/gold_ad_spend"
 

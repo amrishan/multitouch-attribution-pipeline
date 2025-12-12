@@ -37,6 +37,7 @@ import os
 
 
 
+
 # Note: Using FileStore because Public DBFS Root is typically disabled on free tier.
 # Alternatively, use a Workspace path dynamically if preferred (requires code updates)
 import os
@@ -47,11 +48,14 @@ try:
 except:
     username = os.environ.get('USER', 'your-email')
 
-default_path = f"/Workspace/Users/{username}/multitouch_attribution"
+default_workspace_path = f"/Workspace/Users/{username}/multitouch_attribution"
+# Placeholder for Unity Catalog Volume: Users must update this manually if using UC
+# Example: /Volumes/my_catalog/my_schema/my_volume/multitouch_attribution
+default_volume_path = "/Volumes/main/default/my_volume/multitouch_attribution"
 
 # Check if we are likely in a workspace environment
 if os.path.exists("/Workspace/Users"):
-   dbutils.widgets.text("project_dir", default_path)
+   dbutils.widgets.text("project_dir", default_workspace_path)
 else:
    dbutils.widgets.text("project_dir", "/dbfs/FileStore/multitouch_attribution")
 
@@ -63,7 +67,7 @@ database_name_arg = dbutils.widgets.get("database_name")
 # SAFETY BREAK: If user has a cached /dbfs/tmp value (unsafe) but we are in a Workspace, FORCE override to safe path.
 if "/dbfs/tmp" in project_dir_arg and os.path.exists("/Workspace/Users"):
     # Use the robust username fetched above
-    safe_path = f"/Workspace/Users/{username}/multitouch_attribution"
+    safe_path = default_workspace_path
     print(f"WARNING: Detected unsafe cached path '{project_dir_arg}'. Overriding to safe Workspace path: '{safe_path}'")
     project_dir_arg = safe_path
 
@@ -73,9 +77,11 @@ config = ProjectConfig(project_directory=project_dir_arg, database_name=database
 
 
 print(f"Generating data to {config.data_gen_path}")
+print(f"Project Directory Type: {'Volume' if config.is_volume_path else 'Workspace' if config.is_workspace_path else 'DBFS'}")
+
 # Ensure directory exists
-if config.is_workspace_path:
-    # Workspace files supported via os.makedirs
+if config.is_workspace_path or config.is_volume_path:
+    # Workspace files and Volumes supported via os.makedirs
     os.makedirs(os.path.dirname(config.data_gen_path), exist_ok=True)
 else:
     # DBFS
