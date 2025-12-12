@@ -1,10 +1,42 @@
-<div >
-  <img src="https://cme-solution-accelerators-images.s3-us-west-2.amazonaws.com/toxicity/solution-accelerator-logo.png"; width="90%">
-</div>
+
+# Multi-touch Attribution Pipeline (Production)
+
+This repository contains a production-grade implementation of Multi-touch Attribution using **Markov Chains** on the **Databricks Lakehouse Platform**.
 
 ## Overview
+This project processes ad impression and conversion data to assign credit to various marketing channels. It compares heuristic methods (First-Touch, Last-Touch) with data-driven **Markov Chains**.
 
-Behind the growth of every consumer-facing product is the acquisition and retention of an engaged user base. When it comes to acquisition, the goal is to attract high quality users as cost effectively as possible. With marketing dollars dispersed across a wide array of campaigns, channels, and creatives, however, measuring effectiveness is a challenge. In other words, it's difficult to know how to assign credit where credit is due. Enter multi-touch attribution. With multi-touch attribution, credit can be assigned in a variety of ways, but at a high-level, it's typically done using one of two methods: `heuristic` or `data-driven`.
+## Features
+*   **Production Package Structure**: Logic is modularized in `src/multitouch`.
+*   **Automated Testing**: Unit tests for data generation and ingestion using `pytest`.
+*   **Databricks Jobs**: Defined as code `databricks.yml` (Databricks Asset Bundle).
+*   **CI/CD**: GitHub Actions workflow for linting and testing.
+*   **Lakehouse Architecture**: Uses Delta Lake for Bronze, Silver, and Gold layers.
+
+## Installation & Development
+1.  **Clone the repo**:
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/multitouch-attribution-pipeline.git
+    cd multitouch-attribution-pipeline
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    pip install -e .
+    ```
+
+3.  **Run Tests**:
+    ```bash
+    pytest tests/
+    ```
+
+## deployment
+Deploy to Databricks using the Databricks CLI:
+```bash
+databricks bundle deploy
+```
+
 
 * Broadly speaking, heuristic methods are rule-based and consist of both `single-touch` and `multi-touch` approaches. Single-touch methods, such as `first-touch` and `last-touch`, assign credit to the first channel, or the last channel, associated with a conversion. Multi-touch methods, such as `linear` and `time-decay`, assign credit to multiple channels associated with a conversion. In the case of linear, credit is assigned uniformly across all channels, whereas for time-decay, an increasing amount of credit is assigned to the channels that appear closer in time to the conversion event.
 
