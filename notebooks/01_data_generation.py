@@ -44,9 +44,13 @@ config = ProjectConfig(project_directory=project_dir_arg, database_name=database
 
 # COMMAND ----------
 
+
 print(f"Generating data to {config.data_gen_path}")
 # Ensure directory exists
-os.makedirs(os.path.dirname(config.data_gen_path), exist_ok=True)
+# os.makedirs(os.path.dirname(config.data_gen_path), exist_ok=True) # Fails on some DBFS versions
+# Use dbutils to create the directory natively in DBFS
+print(f"Creating directory: {config.raw_data_path}")
+dbutils.fs.mkdirs(config.raw_data_path)
 
 generate_synthetic_data(config.data_gen_path)
 
