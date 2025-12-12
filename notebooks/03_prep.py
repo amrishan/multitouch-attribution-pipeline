@@ -141,21 +141,22 @@ WHERE conversion = 1
 GROUP BY last_interaction
 """)
 
+
 # COMMAND ----------
 
-%sql
--- Gold Table: User Journey
--- Attribution model needs journey data
-CREATE OR REPLACE TABLE gold_user_journey
-USING DELTA
-AS
-SELECT 
-  uid,
-  collect_list(channel) as touch_points
-FROM 
-  silver_user_interactions
-GROUP BY 
-  uid
+# MAGIC %sql
+# MAGIC -- Gold Table: User Journey
+# MAGIC -- Attribution model needs journey data
+# MAGIC CREATE OR REPLACE TABLE gold_user_journey
+# MAGIC USING DELTA
+# MAGIC AS
+# MAGIC SELECT 
+# MAGIC   uid,
+# MAGIC   collect_list(channel) as touch_points
+# MAGIC FROM 
+# MAGIC   silver_user_interactions
+# MAGIC GROUP BY 
+# MAGIC   uid
 
 # COMMAND ----------
 

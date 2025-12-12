@@ -481,6 +481,9 @@ sparkDF.createOrReplaceTempView("markov_chain_attribution_update")
 
 # COMMAND ----------
 
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC -- Gold Table: Attribution (Output of model)
 # MAGIC CREATE OR REPLACE TABLE gold_attribution
