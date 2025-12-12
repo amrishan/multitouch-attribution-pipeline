@@ -36,10 +36,17 @@ import os
 # COMMAND ----------
 
 
+
 # Note: Using FileStore because Public DBFS Root is typically disabled on free tier.
 # Alternatively, use a Workspace path dynamically if preferred (requires code updates)
 import os
-username = os.environ.get('USER', 'your-email')
+
+# Robustly determine the current user's email for Workspace paths
+try:
+    username = spark.sql("SELECT current_user()").first()[0]
+except:
+    username = os.environ.get('USER', 'your-email')
+
 default_path = f"/Workspace/Users/{username}/multitouch_attribution"
 
 # Check if we are likely in a workspace environment
@@ -48,7 +55,6 @@ if os.path.exists("/Workspace/Users"):
 else:
    dbutils.widgets.text("project_dir", "/dbfs/FileStore/multitouch_attribution")
 
-
 dbutils.widgets.text("database_name", "multi_touch_attribution")
 
 project_dir_arg = dbutils.widgets.get("project_dir")
@@ -56,7 +62,7 @@ database_name_arg = dbutils.widgets.get("database_name")
 
 # SAFETY BREAK: If user has a cached /dbfs/tmp value (unsafe) but we are in a Workspace, FORCE override to safe path.
 if "/dbfs/tmp" in project_dir_arg and os.path.exists("/Workspace/Users"):
-    username = os.environ.get('USER', 'unknown_user')
+    # Use the robust username fetched above
     safe_path = f"/Workspace/Users/{username}/multitouch_attribution"
     print(f"WARNING: Detected unsafe cached path '{project_dir_arg}'. Overriding to safe Workspace path: '{safe_path}'")
     project_dir_arg = safe_path
