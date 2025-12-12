@@ -24,11 +24,12 @@ class ProjectConfig:
         return f"/dbfs{self.project_directory}/raw/attribution_data.csv"
 
 
+
     @property
     def raw_data_path(self) -> str:
-        # If Workspace path, return as is (Spark APIs work directly with /Workspace path usually)
+        # If Workspace path, return as FILE path for Spark
         if self.is_workspace_path:
-            return f"{self.project_directory}/raw"
+            return f"file:{self.project_directory}/raw/attribution_data.csv"
             
         # Spark API: Needs dbfs: prefix
         # If input starts with /dbfs, strip it to get the 'logical' path
