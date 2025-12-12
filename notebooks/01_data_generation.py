@@ -1,5 +1,6 @@
 
 
+
 # Databricks notebook source
 # MAGIC %pip install -e ../
 
@@ -34,7 +35,8 @@ import os
 
 # COMMAND ----------
 
-dbutils.widgets.text("project_dir", "/dbfs/tmp/multitouch_attribution")
+# Note: Using FileStore because Public DBFS Root is often disabled
+dbutils.widgets.text("project_dir", "/dbfs/FileStore/multitouch_attribution")
 dbutils.widgets.text("database_name", "multi_touch_attribution")
 
 project_dir_arg = dbutils.widgets.get("project_dir")

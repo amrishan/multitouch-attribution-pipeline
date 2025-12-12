@@ -107,7 +107,9 @@ import matplotlib.pyplot as plt
 
 # COMMAND ----------
 
-dbutils.widgets.text("project_dir", "/dbfs/tmp/multitouch_attribution")
+
+dbutils.widgets.text("project_dir", "/dbfs/FileStore/multitouch_attribution")
+# Note: Using FileStore
 dbutils.widgets.text("database_name", "multi_touch_attribution")
 
 project_dir_arg = dbutils.widgets.get("project_dir")
