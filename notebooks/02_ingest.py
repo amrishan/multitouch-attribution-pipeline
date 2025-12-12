@@ -39,8 +39,20 @@ config = ProjectConfig(project_directory=project_dir_arg, database_name=database
 
 # COMMAND ----------
 
-# Register Table
-register_bronze_table(spark, config.database_name, config.bronze_tbl_path)
+
+# Create Database/Schema if not exists
+spark.sql(f"CREATE DATABASE IF NOT EXISTS {config.database_name}")
+spark.sql(f"USE {config.database_name}")
+
+# Ingest data using Managed Table approach (Unity Catalog compatible)
+# We pass table_name explicitily so it uses .toTable() and avoids LOCATION issues
+print(f"Ingesting data from {config.raw_data_path} into table `{config.database_name}`.bronze")
+query = ingest_data(spark, config.raw_data_path, config.bronze_tbl_path, table_name=f"`{config.database_name}`.bronze")
+
+if query:
+    query.awaitTermination()
+
+# Note: We skip register_bronze_table since .toTable() manages the table creation
 
 # COMMAND ----------
 

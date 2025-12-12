@@ -60,10 +60,11 @@ def register_bronze_table(spark, database_name, bronze_tbl_path, reset=True):
         
     spark.sql(f'CREATE DATABASE IF NOT EXISTS {database_name}')
     
+
     # Only create external table if NOT using managed tables approach
     # logic here assumes if we call this, we want an external table.
+    # UPDATE: For Unity Catalog compatibility, we default to managed tables (no LOCATION)
     spark.sql(f"""
       CREATE TABLE IF NOT EXISTS `{database_name}`.bronze
       USING DELTA 
-      LOCATION '{bronze_tbl_path}'
       """)
