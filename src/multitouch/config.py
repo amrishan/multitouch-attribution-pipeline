@@ -17,9 +17,10 @@ class ProjectConfig:
     def is_volume_path(self) -> bool:
         return self.project_directory.startswith("/Volumes")
 
+
     @property
     def data_gen_path(self) -> str:
-        # If Volume path, return as is
+        # If Volume path, return as is (PYTHON open() needs strict path)
         if self.is_volume_path:
             return f"{self.project_directory}/raw/attribution_data.csv"
 
@@ -35,9 +36,9 @@ class ProjectConfig:
 
     @property
     def raw_data_path(self) -> str:
-        # If Volume path, return as is (Spark supports /Volumes)
+        # If Volume path, return as FILE path for Spark
         if self.is_volume_path:
-             return f"{self.project_directory}/raw"
+             return f"file:{self.project_directory}/raw"
 
         # If Workspace path, return as FILE path for Spark
         if self.is_workspace_path:
@@ -54,7 +55,7 @@ class ProjectConfig:
     @property
     def bronze_tbl_path(self) -> str:
         if self.is_volume_path:
-            return f"{self.project_directory}/bronze"
+            return f"file:{self.project_directory}/bronze"
             
         if self.is_workspace_path:
              return f"{self.project_directory}/bronze"
