@@ -7,9 +7,15 @@ dbutils.widgets.dropdown("reset_workspace", "False", ["True", "False"])
 def get_params():
   import json
   params = json.loads(dbutils.notebook.run('./config/99_config',timeout_seconds=60))
+
   project_directory = params['project_directory']
   database_name = params['database_name']
-  data_gen_path = "/dbfs{}/raw/attribution_data.csv".format(project_directory)
+  
+  if project_directory.startswith("/Volumes"):
+      data_gen_path = "{}/raw/attribution_data.csv".format(project_directory)
+  else:
+      data_gen_path = "/dbfs{}/raw/attribution_data.csv".format(project_directory)
+
   raw_data_path = "dbfs:{}/raw".format(project_directory)
   bronze_tbl_path = "dbfs:{}/bronze".format(project_directory)
   gold_user_journey_tbl_path = "dbfs:{}/gold_user_journey".format(project_directory)
