@@ -482,6 +482,14 @@ sparkDF.createOrReplaceTempView("markov_chain_attribution_update")
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC -- Gold Table: Attribution (Output of model)
+# MAGIC CREATE OR REPLACE TABLE gold_attribution
+# MAGIC (
+# MAGIC   channel STRING,
+# MAGIC   attribution_weight DOUBLE
+# MAGIC )
+# MAGIC USING DELTA;
+# MAGIC
 # MAGIC MERGE INTO gold_attribution
 # MAGIC USING markov_chain_attribution_update
 # MAGIC ON markov_chain_attribution_update.attribution_model = gold_attribution.attribution_model AND markov_chain_attribution_update.channel = gold_attribution.channel

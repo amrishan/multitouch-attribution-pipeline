@@ -143,6 +143,22 @@ GROUP BY last_interaction
 
 # COMMAND ----------
 
+%sql
+-- Gold Table: User Journey
+-- Attribution model needs journey data
+CREATE OR REPLACE TABLE gold_user_journey
+USING DELTA
+AS
+SELECT 
+  uid,
+  collect_list(channel) as touch_points
+FROM 
+  silver_user_interactions
+GROUP BY 
+  uid
+
+# COMMAND ----------
+
 # Gold Attribution table
 spark.sql(f"""
 CREATE TABLE IF NOT EXISTS gold_attribution

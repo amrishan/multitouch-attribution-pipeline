@@ -66,17 +66,21 @@ dbutils.widgets.text("adspend", "10000", "Campaign Budget in $")
 adspend_val = dbutils.widgets.get("adspend")
 
 # COMMAND ----------
-
-# Insert synthetic data
+# Gold Table: Ad Spend (Input for Optimization)
+# We simulate this data
 spark.sql(f'''
-INSERT INTO TABLE gold_ad_spend
-VALUES ("3d65f7e92e81480cac52a20dfdf64d5b", {adspend_val},
-          MAP('Social Network', .2,
-              'Search Engine Marketing', .2,  
-              'Google Display Network', .2, 
-              'Affiliates', .2, 
-              'Email', .2), 
-         make_timestamp(2020, 5, 17, 0, 0, 0));
+CREATE OR REPLACE TABLE gold_ad_spend
+USING DELTA
+AS
+SELECT 
+  '3d65f7e92e81480cac52a20dfdf64d5b' as campaign_id,
+  {adspend_val} as total_spend_in_dollars,
+  MAP('Social Network', .2,
+      'Search Engine Marketing', .2,  
+      'Google Display Network', .2, 
+      'Affiliates', .2, 
+      'Email', .2) as channel_spend,
+  make_timestamp(2020, 5, 17, 0, 0, 0) as campaign_start_date;
 ''')
 
 # COMMAND ----------

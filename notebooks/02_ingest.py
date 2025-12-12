@@ -28,6 +28,7 @@ from multitouch.ingest import ingest_data, register_bronze_table
 
 
 dbutils.widgets.text("project_dir", "/Volumes/mycatalog/multi_touch_attribution/raw")
+
 # Note: Using User-specified Volume
 dbutils.widgets.text("database_name", "multi_touch_attribution")
 
@@ -35,15 +36,6 @@ project_dir_arg = dbutils.widgets.get("project_dir")
 database_name_arg = dbutils.widgets.get("database_name")
 
 config = ProjectConfig(project_directory=project_dir_arg, database_name=database_name_arg)
-
-# COMMAND ----------
-
-# Ingest Data
-print(f"Reading from {config.raw_data_path}")
-query = ingest_data(spark, config.raw_data_path, config.bronze_tbl_path)
-
-if query:
-    query.awaitTermination()
 
 # COMMAND ----------
 
