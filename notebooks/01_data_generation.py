@@ -38,42 +38,17 @@ import os
 
 
 
-# Note: Using FileStore because Public DBFS Root is typically disabled on free tier.
-# Alternatively, use a Workspace path dynamically if preferred (requires code updates)
-import os
 
-# Robustly determine the current user's email for Workspace paths
-try:
-    username = spark.sql("SELECT current_user()").first()[0]
-except:
-    username = os.environ.get('USER', 'your-email')
-
-
-default_workspace_path = f"/Workspace/Users/{username}/multitouch_attribution"
 # User-specified Unity Catalog Volume path
-default_volume_path = "/Volumes/mycatalog/multi_touch_attribution/raw"
+default_volume_path = "/Volumes/mycatalog/multi_touch_attribution"
 
-# Check if we are likely in a workspace environment and prioritize Volume if it exists (or just use it as fallback)
-if os.path.exists(default_volume_path):
-    print(f"Detected Volume path: {default_volume_path}")
-    dbutils.widgets.text("project_dir", default_volume_path)
-elif os.path.exists("/Workspace/Users"):
-    dbutils.widgets.text("project_dir", default_workspace_path)
-else:
-    # Use Volume path as the generic fallback instead of FileStore, per user request
-    dbutils.widgets.text("project_dir", default_volume_path)
+# Force default to Volume path
+dbutils.widgets.text("project_dir", default_volume_path)
 
 dbutils.widgets.text("database_name", "multi_touch_attribution")
 
 project_dir_arg = dbutils.widgets.get("project_dir")
 database_name_arg = dbutils.widgets.get("database_name")
-
-# SAFETY BREAK: If user has a cached /dbfs/tmp value (unsafe) but we are in a Workspace, FORCE override to safe path.
-if "/dbfs/tmp" in project_dir_arg and os.path.exists("/Workspace/Users"):
-    # Use the robust username fetched above
-    safe_path = default_workspace_path
-    print(f"WARNING: Detected unsafe cached path '{project_dir_arg}'. Overriding to safe Workspace path: '{safe_path}'")
-    project_dir_arg = safe_path
 
 config = ProjectConfig(project_directory=project_dir_arg, database_name=database_name_arg)
 
