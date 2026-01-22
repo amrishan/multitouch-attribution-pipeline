@@ -67,7 +67,8 @@ else:
     print(f"Creating directory in DBFS: {config.raw_data_path}")
     dbutils.fs.mkdirs(config.raw_data_path)
 
-generate_synthetic_data(config.data_gen_path)
+# Reduce data size for Community Edition/Dev performance (Default was 500,000 -> ~2.5M rows)
+generate_synthetic_data(config.data_gen_path, unique_id_count=10000)
 
 print("Data generation complete.")
 
