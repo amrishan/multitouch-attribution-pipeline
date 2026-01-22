@@ -12,44 +12,45 @@ def ingest_data(spark, raw_data_path, bronze_tbl_path, table_name=None):
         bronze_tbl_path: Path for checkpointing (and output if table_name is None)
         table_name: Optional. If provided, writes to a Managed Table using .toTable()
     """
-    # Infer schema from raw data (assuming parquet)
+    # Determine target
+    target = table_name if table_name else f"delta.`{bronze_tbl_path}`"
+
+    # Infer schema from raw data (needed for table creation if not exists)
     try:
-        # Parquet files carry their own schema
-        # In cloudFiles (Autoloader) with parquet, schema inference is often automatic or we can sample.
-        # But keeping structure:
         schema = spark.read.parquet(raw_data_path).schema
     except Exception as e:
-        # Fallback if path doesn't exist yet or is empty, though usually it should exist
         print(f"Warning: Could not infer schema from {raw_data_path}: {e}")
-        return None
+        # If we can't infer schema, we might fail to create table if it doesn't exist.
+        # But we can try to proceed if table exists.
+        schema = None
 
-    # Read Stream
-    # Note: cloudFiles options are specific to Databricks
-    raw_data_df = spark.readStream.format("cloudFiles") \
-                .option("cloudFiles.validateOptions", "false") \
-                .option("cloudFiles.format", "parquet") \
-                .option("cloudFiles.region", "us-east-2") \
-                .option("cloudFiles.includeExistingFiles", "true") \
-                .schema(schema) \
-                .load(raw_data_path) 
+    # Ensure table exists (COPY INTO requires it)
+    try:
+        if schema:
+            # We can try to create an empty table based on the schema if it doesn't exist
+            # This acts as a safeguard.
+            spark.createDataFrame([], schema).write.format("delta").mode("ignore").save(bronze_tbl_path)
+            if table_name:
+                spark.sql(f"CREATE TABLE IF NOT EXISTS {table_name} USING DELTA LOCATION '{bronze_tbl_path}'")
+    except Exception as e:
+        print(f"Note: Table initialization skipped or failed: {e}")
+
+    # COPY INTO command with transformations
+    # Note: We use to_timestamp with pattern to match original logic
+    sql = f"""
+    COPY INTO {target}
+    FROM (
+        SELECT 
+            to_timestamp(time, 'yyyy-MM-dd HH:mm:ss') as time,
+            cast(conversion as int) as conversion,
+            * except(time, conversion)
+        FROM '{raw_data_path}'
+    )
+    FILEFORMAT = PARQUET
+    COPY_OPTIONS ('mergeSchema' = 'true', 'force' = 'true')
+    """
     
-    # Transform
-    raw_data_df = raw_data_df.withColumn("time", to_timestamp(col("time"),"yyyy-MM-dd HH:mm:ss"))\
-                  .withColumn("conversion", col("conversion").cast("int"))
-                  
-    # Write Stream
-    writer = raw_data_df.writeStream.format("delta") \
-      .trigger(once=True) \
-      .option("checkpointLocation", bronze_tbl_path+"/checkpoint")
-    
-    if table_name:
-        # Write to managed table
-        query = writer.toTable(table_name)
-    else:
-        # Legacy: Write to path
-        query = writer.start(bronze_tbl_path)
-    
-    return query
+    return spark.sql(sql)
 
 def register_bronze_table(spark, database_name, bronze_tbl_path, reset=True):
     """

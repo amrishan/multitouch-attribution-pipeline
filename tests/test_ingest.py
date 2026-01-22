@@ -14,29 +14,28 @@ def mock_spark():
 def test_ingest_data_flow(mock_to_timestamp, mock_col, mock_spark):
     # Setup mocks
     mock_schema = MagicMock()
-    mock_spark.read.csv.return_value.schema = mock_schema
+    # Mock schema inference
+    mock_spark.read.parquet.return_value.schema = mock_schema
     
-    mock_df = MagicMock()
-    # Mock the chain for readStream
-    mock_reader = mock_spark.readStream.format.return_value
-    for _ in range(5): # 5 options
-        mock_reader = mock_reader.option.return_value
-    
-    mock_reader.schema.return_value.load.return_value = mock_df
-    
-    # Mock transform
-    mock_transformed_df = MagicMock()
-    # Mock chain: df.withColumn().withColumn()
-    mock_df.withColumn.return_value.withColumn.return_value = mock_transformed_df
+    # Mock table creation buffer
+    mock_df_writer = MagicMock()
+    mock_spark.createDataFrame.return_value.write.format.return_value.mode.return_value = mock_df_writer
     
     # Run
     ingest_data(mock_spark, "dummy_raw", "dummy_bronze")
     
     # Assert
-    mock_spark.readStream.format.assert_called_with("cloudFiles")
-    mock_spark.read.csv.assert_called_with("dummy_raw", header=True)
-    # Check write stream started
-    mock_transformed_df.writeStream.format.assert_called_with("delta")
+    # Check that schema was inferred from parquet
+    mock_spark.read.parquet.assert_called_with("dummy_raw")
+    
+    # Check that COPY INTO was executed via spark.sql
+    args = mock_spark.sql.call_args[0][0]
+    assert "COPY INTO" in args
+    assert "delta.`dummy_bronze`" in args
+    assert "FROM" in args
+    assert "SELECT" in args
+    assert "to_timestamp(time, 'yyyy-MM-dd HH:mm:ss')" in args
+    assert "cast(conversion as int)" in args
 
 def test_register_bronze_table(mock_spark):
     register_bronze_table(mock_spark, "db_name", "path/to/bronze", reset=True)
