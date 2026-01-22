@@ -53,46 +53,66 @@ spark.sql(f"USE {config.database_name}")
 
 # COMMAND ----------
 
-# Create temp view
-spark.sql(f"""
+# Step 1: Calculate Visit Order (Inner Layer)
+print("Step 1: Calculating Visit Order...")
+spark.sql("""
+CREATE OR REPLACE TEMP VIEW sub_visit_order AS
+SELECT
+  uid,
+  channel,
+  time,
+  conversion,
+  dense_rank() OVER (
+    PARTITION BY uid
+    ORDER BY
+      time asc
+  ) as visit_order
+FROM
+  bronze
+""")
+print("Step 1 Complete. Sample output (sub_visit_order):")
+spark.sql("SELECT * FROM sub_visit_order LIMIT 5").show(truncate=False)
+
+
+# Step 2: Aggregate User Paths (Middle Layer)
+print("Step 2: Aggregating User Paths...")
+spark.sql("""
+CREATE OR REPLACE TEMP VIEW sub_aggregated AS
+SELECT
+  uid,
+  concat_ws(' > ', collect_list(channel)) AS path,
+  element_at(collect_list(channel), 1) AS first_interaction,
+  element_at(collect_list(channel), -1) AS last_interaction,
+  element_at(collect_list(conversion), -1) AS conversion,
+  collect_list(visit_order) AS visiting_order
+FROM
+  sub_visit_order
+GROUP BY
+  uid
+""")
+print("Step 2 Complete. Sample output (sub_aggregated):")
+spark.sql("SELECT * FROM sub_aggregated LIMIT 5").show(truncate=False)
+
+
+# Step 3: Final User Journey View (Outer Layer)
+print("Step 3: Creating User Journey View...")
+spark.sql("""
 CREATE OR REPLACE TEMP VIEW user_journey_view AS
 SELECT
-  sub2.uid AS uid,CASE
-    WHEN sub2.conversion == 1 then concat('Start > ', sub2.path, ' > Conversion')
-    ELSE concat('Start > ', sub2.path, ' > Null')
+  uid,
+  CASE
+    WHEN conversion == 1 then concat('Start > ', path, ' > Conversion')
+    ELSE concat('Start > ', path, ' > Null')
   END AS path,
-  sub2.first_interaction AS first_interaction,
-  sub2.last_interaction AS last_interaction,
-  sub2.conversion AS conversion,
-  sub2.visiting_order AS visiting_order
+  first_interaction,
+  last_interaction,
+  conversion,
+  visiting_order
 FROM
-  (
-    SELECT
-      sub.uid AS uid,
-      concat_ws(' > ', collect_list(sub.channel)) AS path,
-      element_at(collect_list(sub.channel), 1) AS first_interaction,
-      element_at(collect_list(sub.channel), -1) AS last_interaction,
-      element_at(collect_list(sub.conversion), -1) AS conversion,
-      collect_list(sub.visit_order) AS visiting_order
-    FROM
-      (
-        SELECT
-          uid,
-          channel,
-          time,
-          conversion,
-          dense_rank() OVER (
-            PARTITION BY uid
-            ORDER BY
-              time asc
-          ) as visit_order
-        FROM
-          bronze
-      ) AS sub
-    GROUP BY
-      sub.uid
-  ) AS sub2;
+  sub_aggregated
 """)
+print("Step 3 Complete. Sample output (user_journey_view):")
+spark.sql("SELECT * FROM user_journey_view LIMIT 5").show(truncate=False)
 
 # COMMAND ----------
 
