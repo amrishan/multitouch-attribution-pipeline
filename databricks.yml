@@ -1,27 +1,33 @@
-
 bundle:
   name: multitouch_attribution
+
+variables:
+  my_cluster_id:
+    description: "The ID of your existing Databricks Community Edition cluster."
+    default: "ENTER_YOUR_CLUSTER_ID_HERE" # User must update this!
 
 resources:
   jobs:
     multitouch_pipeline:
       name: Multitouch Attribution Pipeline
+      # Removed job_clusters definition (incompatible with Community Edition which requires existing_cluster_id)
+      
       tasks:
         - task_key: data_generation
-          job_cluster_key: common_cluster
+          existing_cluster_id: ${var.my_cluster_id}
           notebook_task:
             notebook_path: ./notebooks/01_data_generation
         
         - task_key: ingest
           depends_on:
             - task_key: data_generation
-          job_cluster_key: common_cluster
+          existing_cluster_id: ${var.my_cluster_id}
           notebook_task:
             notebook_path: ./notebooks/02_ingest
 
-      job_clusters:
-        - job_cluster_key: common_cluster
-          new_cluster:
-            spark_version: 13.3.x-scala2.12
-            node_type_id: i3.xlarge
-            num_workers: 1
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://community.cloud.databricks.com
