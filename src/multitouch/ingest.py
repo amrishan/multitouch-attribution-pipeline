@@ -28,7 +28,7 @@ def ingest_data(spark, raw_data_path, bronze_tbl_path, table_name=None):
     raw_data_df = spark.readStream.format("cloudFiles") \
                 .option("cloudFiles.validateOptions", "false") \
                 .option("cloudFiles.format", "parquet") \
-                .option("cloudFiles.region", "us-west-2") \
+                .option("cloudFiles.region", "us-east-2") \
                 .option("cloudFiles.includeExistingFiles", "true") \
                 .schema(schema) \
                 .load(raw_data_path) 
