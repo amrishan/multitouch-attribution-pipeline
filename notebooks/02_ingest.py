@@ -49,8 +49,15 @@ spark.sql(f"USE {config.database_name}")
 print(f"Ingesting data from {config.raw_data_path} into table `{config.database_name}`.bronze")
 query = ingest_data(spark, config.raw_data_path, config.bronze_tbl_path, table_name=f"`{config.database_name}`.bronze")
 
+# Batch Execution (COPY INTO) - no need to await termination
 if query:
-    query.awaitTermination()
+    try:
+        # COPY INTO returns a DataFrame with metrics (num_affected_rows etc.)
+        # We can display it or just print it.
+        print("COPY INTO command executed. Result metrics:")
+        query.show(truncate=False)
+    except Exception as e:
+        print(f"Ingestion result: {query}")
 
 # Note: We skip register_bronze_table since .toTable() manages the table creation
 
