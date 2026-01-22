@@ -27,11 +27,14 @@ def ingest_data(spark, raw_data_path, bronze_tbl_path, table_name=None):
     # Ensure table exists (COPY INTO requires it)
     try:
         if schema:
-            # We can try to create an empty table based on the schema if it doesn't exist
-            # This acts as a safeguard.
-            spark.createDataFrame([], schema).write.format("delta").mode("ignore").save(bronze_tbl_path)
             if table_name:
-                spark.sql(f"CREATE TABLE IF NOT EXISTS {table_name} USING DELTA LOCATION '{bronze_tbl_path}'")
+                # Managed Table (Unity Catalog): Write empty DF to initialize table if it doesn't exist
+                # This automatically handles schema and location management by UC
+                # Note: saveAsTable with mode("ignore") will do the CREATE IF NOT EXISTS equivalent
+                spark.createDataFrame([], schema).write.format("delta").mode("ignore").saveAsTable(table_name)
+            else:
+                # Legacy: Path based
+                spark.createDataFrame([], schema).write.format("delta").mode("ignore").save(bronze_tbl_path)
     except Exception as e:
         print(f"Note: Table initialization skipped or failed: {e}")
 
