@@ -24,11 +24,18 @@
 # COMMAND ----------
 
 # DBTITLE 0,Install util packages
-# MAGIC %pip install git+https://github.com/databricks-academy/dbacademy@v1.0.13 git+https://github.com/databricks-industry-solutions/notebook-solution-companion@safe-print-html --quiet --disable-pip-version-check
+# MAGIC %md
+# MAGIC > [!NOTE]
+# MAGIC > **Community Edition / Serverless Compatibility Update:**
+# MAGIC > The automated deployment via `solacc` library below has been disabled because it requires JVM access and Cluster Creation permissions that are not available in Databricks Community Free Edition (or Serverless environments).
+# MAGIC >
+# MAGIC > Please run the notebooks manually as listed in the `job_json` below, or use the `databricks.yml` bundle to deploy.
+
+# %pip install git+https://github.com/databricks-academy/dbacademy@v1.0.13 git+https://github.com/databricks-industry-solutions/notebook-solution-companion@safe-print-html --quiet --disable-pip-version-check
 
 # COMMAND ----------
 
-from solacc.companion import NotebookSolutionCompanion
+# from solacc.companion import NotebookSolutionCompanion
 
 # COMMAND ----------
 
@@ -105,7 +112,7 @@ job_json = {
                 "job_cluster_key": "multitouch_cluster",
                 "new_cluster": {
                     "spark_version": "12.2.x-cpu-ml-scala2.12",
-                "spark_conf": {
+                    "spark_conf": {
                     "spark.databricks.delta.formatCheck.enabled": "false"
                     },
                     "num_workers": 2,
@@ -123,11 +130,17 @@ job_json = {
 
 dbutils.widgets.dropdown("run_job", "False", ["True", "False"])
 run_job = dbutils.widgets.get("run_job") == "True"
-NotebookSolutionCompanion().deploy_compute(job_json, run_job=run_job)
+
+if run_job:
+    print("WARNING: Automated job deployment is disabled for Community Edition compatibility.")
+    print("Please run the notebooks listed above manually or use 'databricks bundle deploy'.")
+
+# NotebookSolutionCompanion().deploy_compute(job_json, run_job=run_job)
 
 # COMMAND ----------
 
 
 
 # COMMAND ----------
+
 
