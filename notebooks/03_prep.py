@@ -117,10 +117,10 @@ spark.sql("SELECT * FROM user_journey_view LIMIT 5").show(truncate=False)
 # COMMAND ----------
 
 # Create gold table
+# Create gold table
 spark.sql(f"""
   CREATE TABLE IF NOT EXISTS `{config.database_name}`.gold_user_journey
   USING DELTA 
-  LOCATION '{config.gold_user_journey_tbl_path}'
   AS SELECT * from user_journey_view
 """)
 
@@ -181,10 +181,10 @@ GROUP BY last_interaction
 # COMMAND ----------
 
 # Gold Attribution table
+# Gold Attribution table
 spark.sql(f"""
 CREATE TABLE IF NOT EXISTS gold_attribution
 USING DELTA
-LOCATION '{config.gold_attribution_tbl_path}'
 AS
 SELECT * FROM attribution_view
 """)
