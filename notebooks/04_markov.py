@@ -489,7 +489,8 @@ sparkDF.createOrReplaceTempView("markov_chain_attribution_update")
 # MAGIC CREATE OR REPLACE TABLE gold_attribution
 # MAGIC (
 # MAGIC   channel STRING,
-# MAGIC   attribution_weight DOUBLE
+# MAGIC   attribution_model STRING,
+# MAGIC   attribution_percent DOUBLE
 # MAGIC )
 # MAGIC USING DELTA;
 # MAGIC
