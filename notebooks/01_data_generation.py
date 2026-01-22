@@ -73,4 +73,4 @@ print("Data generation complete.")
 
 # COMMAND ----------
 # Optional: Display loaded data
-display(spark.read.format('csv').option('header','true').load(config.raw_data_path))
+display(spark.read.parquet(config.raw_data_path))

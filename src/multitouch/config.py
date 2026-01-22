@@ -22,17 +22,17 @@ class ProjectConfig:
     def data_gen_path(self) -> str:
         # If Volume path, return as is (PYTHON open() needs strict path)
         if self.is_volume_path:
-            return f"{self.project_directory}/raw/attribution_data.csv"
+            return f"{self.project_directory}/raw/attribution_data.parquet"
 
         # If Workspace path, return as is (Python os APIs work directly)
         if self.is_workspace_path:
-            return f"{self.project_directory}/raw/attribution_data.csv"
+            return f"{self.project_directory}/raw/attribution_data.parquet"
             
         # Local file API: Needs /dbfs prefix
         # If input already has /dbfs, don't add it again
         if self.project_directory.startswith("/dbfs"):
-            return f"{self.project_directory}/raw/attribution_data.csv"
-        return f"/dbfs{self.project_directory}/raw/attribution_data.csv"
+            return f"{self.project_directory}/raw/attribution_data.parquet"
+        return f"/dbfs{self.project_directory}/raw/attribution_data.parquet"
 
 
 
@@ -44,7 +44,7 @@ class ProjectConfig:
 
         # If Workspace path, return as FILE path for Spark
         if self.is_workspace_path:
-            return f"file:{self.project_directory}/raw/attribution_data.csv"
+            return f"file:{self.project_directory}/raw/attribution_data.parquet"
             
         # Spark API: Needs dbfs: prefix
         # If input starts with /dbfs, strip it to get the 'logical' path

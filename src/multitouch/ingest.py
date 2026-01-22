@@ -12,10 +12,12 @@ def ingest_data(spark, raw_data_path, bronze_tbl_path, table_name=None):
         bronze_tbl_path: Path for checkpointing (and output if table_name is None)
         table_name: Optional. If provided, writes to a Managed Table using .toTable()
     """
-    # Infer schema from raw data (assuming csv with header)
-    # Note: in production, schema should likely be explicit, but following original logic
+    # Infer schema from raw data (assuming parquet)
     try:
-        schema = spark.read.csv(raw_data_path, header=True).schema
+        # Parquet files carry their own schema
+        # In cloudFiles (Autoloader) with parquet, schema inference is often automatic or we can sample.
+        # But keeping structure:
+        schema = spark.read.parquet(raw_data_path).schema
     except Exception as e:
         # Fallback if path doesn't exist yet or is empty, though usually it should exist
         print(f"Warning: Could not infer schema from {raw_data_path}: {e}")
@@ -25,8 +27,7 @@ def ingest_data(spark, raw_data_path, bronze_tbl_path, table_name=None):
     # Note: cloudFiles options are specific to Databricks
     raw_data_df = spark.readStream.format("cloudFiles") \
                 .option("cloudFiles.validateOptions", "false") \
-                .option("cloudFiles.format", "csv") \
-                .option("header", "true") \
+                .option("cloudFiles.format", "parquet") \
                 .option("cloudFiles.region", "us-west-2") \
                 .option("cloudFiles.includeExistingFiles", "true") \
                 .schema(schema) \
